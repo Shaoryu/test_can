@@ -1,0 +1,11 @@
+{
+    "target_overrides": {
+        "*": {
+            "target.printf_lib": "std",
+            "platform.stdio-convert-newlines": true,
+            "platform.stdio-baud-rate": 921600,
+            "platform.minimal-printf-enable-64-bit": true,
+            "platform.minimal-printf-set-floating-point-max-decimals": 6
+        }
+    }
+}

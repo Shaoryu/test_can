@@ -1,0 +1,8 @@
+.build
+.mbed
+projectfiles
+*.py*
+BUILD
+canmanager
+incenc_board_lib
+mbed-os
