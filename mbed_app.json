@@ -7,5 +7,6 @@
             "platform.minimal-printf-enable-64-bit": true,
             "platform.minimal-printf-set-floating-point-max-decimals": 6
         }
+        
     }
 }
