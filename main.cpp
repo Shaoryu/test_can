@@ -11,10 +11,10 @@
 #include <cstdio>
 #include <cstring>
 //2026仕様
-#define writer
+#define reader
 #ifdef reader26s
 UnbufferedSerial pc(USBTX,USBRX,921600);
-CAN can1(PA_11,PA_12,1e6);
+CAN can1(PD_0,PD_1,1e6);
 //CAN can1(PB_5,PB_6,1e6);
 receive_board rev(can1,0x100,3);
 DigitalOut leds[4]={PC_0,PC_1,PC_2,PC_3};
@@ -106,36 +106,36 @@ int main()
         ThisThread::sleep_for(BLINKING_RATE);
     }
 }
-CAN can(PB_12,PB_13,1000000);
-CANMessage msg;
-DigitalOut leds[3]{
-    DigitalOut(PA_0),
-    DigitalOut(PA_1),
-    DigitalOut(PA_2)
-};
-int main(){
-    can.mode(CAN::Normal);
-    msg.id=0x05;
-    msg.len=8;
-    msg.data[0]=0xff;
-    while (true) {
-        if(can.write(msg))leds[0]=!leds[0];
-        leds[1]=!leds[1];
-        msg.data[0]=0;
-        ThisThread::sleep_for(10ms);
-        if(can.write(msg))leds[0]=!leds[0];
-        leds[1]=!leds[1];
-        msg.data[0]=1;
-        printf()
-        ThisThread::sleep_for(10ms);
-    }
-}
+// CAN can(PB_12,PB_13,1000000);
+// CANMessage msg;
+// DigitalOut leds[3]{
+//     DigitalOut(PA_0),
+//     DigitalOut(PA_1),
+//     DigitalOut(PA_2)
+// };
+// int main(){
+//     can.mode(CAN::Normal);
+//     msg.id=0x05;
+//     msg.len=8;
+//     msg.data[0]=0xff;
+//     while (true) {
+//         if(can.write(msg))leds[0]=!leds[0];
+//         leds[1]=!leds[1];
+//         msg.data[0]=0;
+//         ThisThread::sleep_for(10ms);
+//         if(can.write(msg))leds[0]=!leds[0];
+//         leds[1]=!leds[1];
+//         msg.data[0]=1;
+//         printf()
+//         ThisThread::sleep_for(10ms);
+//     }
+// }
 #endif
 
 
 #ifdef reader
 UnbufferedSerial pc(USBTX,USBRX,921600);
-CAN can1(PB_5,PB_6,1000000);
+CAN can1(PB_12,PB_13,1000000);
 //CAN can1(PB_5,PB_6,1000000);
 DigitalOut leds[4]={PC_0,PC_1,PC_2,PC_3};
 CANMessage msg;
@@ -171,8 +171,8 @@ int main(){
             printf("%x\t",msg.data[i]);
         }
         
-        int16_t raw_theta = (int16_t)((msg.data[4] << 8) | msg.data[5]);
-        printf("%d",raw_theta);
+        // int16_t raw_theta = (int16_t)((msg.data[4] << 8) | msg.data[5]);
+        // printf("%d",raw_theta);
         //if(msg.id);
         printf("\r\n");
         //can2.write(smsg);
