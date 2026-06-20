@@ -11,7 +11,7 @@
 #include <cstdio>
 #include <cstring>
 //2026仕様
-#define reader
+#define writer2
 #ifdef reader26s
 UnbufferedSerial pc(USBTX,USBRX,921600);
 CAN can1(PD_0,PD_1,1e6);
@@ -45,65 +45,80 @@ int main(){
     }
 }
 #endif
-
 #ifdef writer
-// Blinking rate in milliseconds
-#define BLINKING_RATE     20ms
-CAN can(PB_12,PB_13,1000000);
+#define ID 0x300
+CAN can(PA_11,PA_12,1e6);
 CANMessage msg;
 
+int main(){
+    can.mode(CAN::Normal);
+    msg.id=ID;
+    msg.len=8;
+    for(int i=0;i<8;i++)msg.data[i]=0xFF;
+    while(1){
+        can.write(msg);
+        ThisThread::sleep_for(1ms);
+    }
+}
+#endif
+#ifdef writer2
+#define ID 0x300
+#define LOOP_RATE     5ms
+CAN can(PB_12,PB_13,1e6);
+DigitalOut leds[4]={PC_0,PC_1,PC_2,PC_3};
 UnbufferedSerial pc(USBTX,USBRX,921600);
+CANMessage msg;
+int16_t speeds[4]={};
 int main()
 {
-    // Initialise the digital pin LED1 as an output
+    leds[0]=true;
     can.mode(CAN::Normal);
-    msg.id=0x310;
+    msg.id=ID;
     msg.len=8;
     for(int i=0;i<8;i++)msg.data[i]=0;
 
     DigitalOut led(LED1);
 
-
     while (true) {
+        msg.id=ID;
         char key;
         if(pc.readable()){
+            leds[2]=!leds[2];
             pc.read(&key, 1);
-            printf("%c\r\n",key);
-            if(key>='0'&&key<='9'){
-                for(int i=0;i<4;i++)
-                    msg.data[3]=(key-'0')*28;
-                //msg.data[6]=0x0;
-                msg.data[7]=0x0;
-                //motor_controller.control_tracon(control_mode ,setpoint,( key-'0')*max_deg/10+offset_deg , 1);
-                //setpoint[0] =( key-'0')*max_deg/10+offset_deg;
-                //control_mode[0] = abs(now_ang[0]/19-setpoint[0])>1800?TRACON:ANGLE;
-            }else if(key=='j'){
-                for(int i=0;i<4;i++)
-                    msg.data[3]=0xff;
-                msg.data[7]=0x0;
+            printf("%c\n",key);
+            switch (key) {
+                case 'w':case '1':
+                    speeds[0]=120;
+                    break;
+                case 's':case '2':
+                    speeds[0]=-120;
+                    break;
+                case 'a':case '3':
+                    speeds[3]=120;
+                    break;
+                case 'd':case '4':
+                    speeds[3]=-120;
+                    break;
+                default:for(int i=0;i<4;i++)speeds[i]=0;
             }
-            else if(key=='h'){
-                for(int i=0;i<4;i++)
-                    msg.data[3]=0x0;
-                msg.data[7]=0x20;
+            for(int i=0;i<4;i++){
+                msg.data[i*2]=((uint16_t)speeds[i])>>8;
+                msg.data[i*2+1]=((uint16_t)speeds[i])&0xFF;
             }
-            else if(key=='z'){
-                for(int i=0;i<4;i++)
-                    msg.data[3]=0x0;
-                msg.data[6]=0x0;
-                msg.data[7]=0x0;
+            for (int i=0; i<msg.len; i++) {
+                printf("%x\t",msg.data[i]);
             }
-            else if(key=='x'){
-                for(int i=0;i<4;i++)
-                    msg.data[3]=0x0;
-                msg.data[6]=0x5;
-                msg.data[7]=0x0;
-            }
-            //can.write(msg);
         }
-        can.write(msg);
-            led = !led;
-        ThisThread::sleep_for(BLINKING_RATE);
+        for(int i=0;i<3;i++){
+            can.write(msg);
+            wait_us(200);
+        }
+        // msg.id++;
+        // wait_us(200);
+        // can.write(msg);
+        printf("err:%3x\n",can.tderror());
+        leds[1]=!leds[1];
+        ThisThread::sleep_for(LOOP_RATE);
     }
 }
 // CAN can(PB_12,PB_13,1000000);
@@ -135,7 +150,7 @@ int main()
 
 #ifdef reader
 UnbufferedSerial pc(USBTX,USBRX,921600);
-CAN can1(PB_12,PB_13,1000000);
+CAN can1(PA_11,PA_12,1000000);
 //CAN can1(PB_5,PB_6,1000000);
 DigitalOut leds[4]={PC_0,PC_1,PC_2,PC_3};
 CANMessage msg;
@@ -166,10 +181,13 @@ int main(){
     while (true) {
         memcpy(data._msg_buf, msg.data, size_msg);
         //printf("%x\t%lld\r\n",msg.id,data.num);
-        printf("%x\t",msg.id);
-        for (int i=0; i<msg.len; i++) {
-            printf("%x\t",msg.data[i]);
+        if(true){
+            printf("%x\t",msg.id);
+            for (int i=0; i<msg.len; i++) {
+                printf("%x\t",msg.data[i]);
+            }
         }
+        
         
         // int16_t raw_theta = (int16_t)((msg.data[4] << 8) | msg.data[5]);
         // printf("%d",raw_theta);
